@@ -1,0 +1,35 @@
+# Instructions for Windows Installation
+
+1. Build it:
+
+        mvn clean package
+
+2. Copy target/neo4j-unmanaged-extension-tableau-1.0.0.jar to the plugins/ directory of your Neo4j server.
+
+3) Download additional jar files from the plugins folder and move to the plugins/ directory of your Neo4j server.
+
+a) commons-lang3-3.4.jar
+b) jna-3.5.1.jar
+c) neo4j-unmanaged-extension-tableau-0.9.0.jar
+d) tableau-commmon-9.1.0.jar
+e) tableau-extract-9.1.0.jar
+f) tableau-server-9.1.0.jar
+
+4) Configure the neo4j-server.properties file:
+org.neo4j.server.thirdparty_jaxrs_classes=org.neo4j.unmanaged.extension.tableau=/export
+
+5) Download and Extract the Tableau SDK to a directory (e.g. c:\tableausdk)
+
+https://downloads.tableau.com/tssoftware/Tableau-SDK-C-Java-64Bit-9-3-1.zip
+
+6) Add the SDK\bin directory to the PATH variable.
+
+PATH=C:\tableausdk\bin;
+
+7) Verify that the tdeserver64.exe runs from the c:\tableausdk\bin directory.
+
+8) Test the Tableau Connector using the sample queries.
+
+
+
+

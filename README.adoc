@@ -1,0 +1,30 @@
+# tableau-WDC-TDE
+
+== Neo4j Tableau Web Data Connector
+
+This is the code for the Tableau TDE and Web Data Connector.
+
+=== Versions
+This code has been tested on Neo4j 2.2 and 2.3 versions. 
+This code has been tested against Tableau 9.1.
+The TDE format should be able to be read by Tableau versions 7 and higher.
+
+=== TDE ===
+To create a TDE, pass in the following query:
+
+Query:
+Match (n:Movie) return n
+
+URL:
+localhost:7474/export/tableau/tde/Match%20(n%3AMovie)%20return%20n
+
+
+=== Web Data Connector ===
+The Web Data Connector requires a small HTML page to pass the query to Neo4j and return the results directly to Tableau.
+There is a sample HTML page in the website directory that will allow you to get started.
+
+=== Documentation ===
+There is additional documentation on installation and configuration in the Neo4jWdc-Docu.pdf located in the documentation folder.
+
+=== Example Queries ===
+There are sample queries in the sample_queries.txt file.
