@@ -13,10 +13,15 @@ The TDE format should be able to be read by Tableau versions 7 and higher.
 To create a TDE, pass in the following query:
 
 Query:
+
+[source,cypher]
+----
 Match (n:Movie) return n
+----
 
 URL:
-localhost:7474/export/tableau/tde/Match%20(n%3AMovie)%20return%20n
+
+http://localhost:7474/export/tableau/tde/Match%20(n%3AMovie)%20return%20n
 
 
 === Web Data Connector ===
