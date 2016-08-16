@@ -8,4 +8,4 @@ mvn install:install-file -Dpackaging=jar -DgroupId=com.sun.jna -DartifactId=jna 
 mvn clean install
 
 # create zip
-zip -rj neo4j-tableau-3.0.zip jars/*.jar target/neo4j-unmanaged-extension-tableau-*.jar
+zip -rj neo4j-tableau-2.3.zip jars/*.jar target/neo4j-unmanaged-extension-tableau-*.jar

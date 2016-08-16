@@ -91,14 +91,10 @@ image::img/image023.png[]
 
 Download/build and install the extension(s) according to the instructions in the link:../README.adoc[readme] into the server’s plugins directory. 
 
-----
-cp extension/jars/neo4j-web-extension-tableau-wdc-1.0.0.jar $NEO4J_HOME/plugins/ 
-----
-
-Edit `conf/neo4j.conf` to register the package name with an endpoint:
+Edit `$NEO4J_HOME/conf/neo4j-server.properties` to register the packages name with an endpoint:
 
 ----
-org.neo4j.server.thirdparty_jaxrs_classes=org.neo4j.tableau.wdc=/tableau/wdc
+org.neo4j.server.thirdparty_jaxrs_classes==org.neo4j.unmanaged.extension.tableau=/export,org.neo4j.tableau.wdc=/tableau/wdc
 ----
 
 For the moment, the extension works only with disabled authentication:

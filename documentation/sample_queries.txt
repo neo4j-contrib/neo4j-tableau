@@ -1,32 +1,44 @@
 Export TDE plugin examples:
 
-Qery:
-Match (p:Person)-[a:ACTED_IN]->(m:Movie) return p,a,m
-Match (p)-[a]->(m:Movie) return p,a,m
+Query:
+
+MATCH (p:Person)-[a:ACTED_IN]->(m:Movie) RETURN p,a,m
+
+MATCH (p)-[a]->(m:Movie) RETURN p,a,m
+
 URL:
-localhost:7474/export/tableau/tde/Match%20%28p%3APerson%29-%5Ba%3AACTED_IN%5D-%3E%28m%3AMovie%29%20return%20p%2Ca%2Cm
-localhost:7474/export/tableau/tde/Match%20(p)-%5Ba%5D-%3E(m%3AMovie)%20return%20p%2Ca%2Cm
+
+http://localhost:7474/export/tableau/tde/Match%20%28p%3APerson%29-%5Ba%3AACTED_IN%5D-%3E%28m%3AMovie%29%20return%20p%2Ca%2Cm
+
+http://localhost:7474/export/tableau/tde/Match%20(p)-%5Ba%5D-%3E(m%3AMovie)%20return%20p%2Ca%2Cm
 
 Query:
-Match (n:Movie) return n
+
+MATCH (n:Movie) RETURN n
+
 URL:
-localhost:7474/export/tableau/tde/Match%20(n%3AMovie)%20return%20n
+
+http://localhost:7474/export/tableau/tde/Match%20(n%3AMovie)%20return%20n
 
 ——————
 
 Export TDE Publish plugin examples:
 
 API Path:
-localhost:7474/export/tableau/tdepublish/{project}/{datasource}/{cypher}
 
-Match (n:Movie) return n
+http://localhost:7474/export/tableau/tdepublish/{project}/{datasource}/{cypher}
+
+MATCH (n:Movie) RETURN n
+
 URL:
-localhost:7474/export/tableau/tdepublish/default/Neo4jCypher/Match%20(n%3AMovie)%20return%20n
+
+http://localhost:7474/export/tableau/tdepublish/default/Neo4jCypher/Match%20(n%3AMovie)%20return%20n
 
 ——————
 
 WDC plugin:
 URL:
+
 http://localhost:7474/tableau/wdc/
 
 

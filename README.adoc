@@ -29,7 +29,7 @@ It will generate and return a TDE file for usage in Tableau.
 
 == Versions
 
-* This code has been tested on Neo4j 3.0 versions. 
+* This code has been tested on Neo4j 2.3 versions. 
 * This code has been tested against Tableau 9.1.
 * The TDE format should be able to be read by Tableau versions 7 and higher.
 
@@ -53,10 +53,10 @@ cd extension
 
 Unzip `neo4j-tableau-<version>.zip` to `$NEO4J_HOME/plugins`.
 
-Edit the $NEO4J_HOME/conf/neo4j.conf file, add:
+Edit the $NEO4J_HOME/conf/neo4j-server.properties file, add:
 
 ----
-dbms.unmanaged_extension_classes==org.neo4j.unmanaged.extension.tableau=/export,org.neo4j.tableau.wdc=/tableau/wdc
+org.neo4j.server.thirdparty_jaxrs_classes==org.neo4j.unmanaged.extension.tableau=/export,org.neo4j.tableau.wdc=/tableau/wdc
 ----
 
 === Install Tableau Components
