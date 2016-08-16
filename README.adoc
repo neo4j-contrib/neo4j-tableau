@@ -29,9 +29,9 @@ It will generate and return a TDE file for usage in Tableau.
 
 == Versions
 
-This code has been tested on Neo4j 3.0 versions. 
-This code has been tested against Tableau 9.1.
-The TDE format should be able to be read by Tableau versions 7 and higher.
+* This code has been tested on Neo4j 3.0 versions. 
+* This code has been tested against Tableau 9.1.
+* The TDE format should be able to be read by Tableau versions 7 and higher.
 
 
 == Build Instructions for Neo4j - Tableau Extension
