@@ -56,7 +56,7 @@ Unzip `neo4j-tableau-<version>.zip` to `$NEO4J_HOME/plugins`.
 Edit the $NEO4J_HOME/conf/neo4j.conf file, add:
 
 ----
-dbms.unmanaged_extension_classes==org.neo4j.unmanaged.extension.tableau=/export
+dbms.unmanaged_extension_classes==org.neo4j.unmanaged.extension.tableau=/export,org.neo4j.tableau.wdc=/tableau/wdc
 ----
 
 === Install Tableau Components

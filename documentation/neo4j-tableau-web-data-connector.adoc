@@ -89,13 +89,13 @@ image::img/image023.png[]
 
 == Run Neo4j WDC as Server Extension
 
-Copy the extension library `neo4j-web-extension-tableau-wdc-1.0.0.jar` into the server’s plugin directory: 
+Download/build and install the extension(s) according to the instructions in the link:../README.adoc[readme] into the server’s plugins directory. 
 
 ----
-cp neo4j-web-extension-tableau-wdc-1.0.0.jar /path/to/neo/plugins/ 
+cp extension/jars/neo4j-web-extension-tableau-wdc-1.0.0.jar $NEO4J_HOME/plugins/ 
 ----
 
-Edit `conf/neo4j-server.properties` to register the package name with an endpoint:
+Edit `conf/neo4j.conf` to register the package name with an endpoint:
 
 ----
 org.neo4j.server.thirdparty_jaxrs_classes=org.neo4j.tableau.wdc=/tableau/wdc
@@ -110,7 +110,7 @@ dbms.security.auth_enabled=false
 Restart the server:
 
 ----
-/path/to/neo/bin/neo4j restart
+$NEO4J_HOME/bin/neo4j restart
 ----
 
 Then navigate in browser to the extension URL to start the Neo4j WDC Form: http://localhost:7474/tableau/wdc/
