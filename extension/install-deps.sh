@@ -1,4 +1,0 @@
-mvn install:install-file -Dpackaging=jar -DgroupId=com.tableausoftware -Dversion=9.1.0 -DartifactId=tableau-extract -Dfile=../plugins/tableau-extract-9.1.0.jar -DgeneratePom=true
-mvn install:install-file -Dpackaging=jar -DgroupId=com.tableausoftware -Dversion=9.1.0 -DartifactId=tableau-common  -Dfile=../plugins/tableau-common-9.1.0.jar  -DgeneratePom=true
-mvn install:install-file -Dpackaging=jar -DgroupId=com.tableausoftware -Dversion=9.1.0 -DartifactId=tableau-server  -Dfile=../plugins/tableau-server-9.1.0.jar  -DgeneratePom=true
-mvn install:install-file -Dpackaging=jar -DgroupId=com.sun.jna -DartifactId=jna -Dversion=3.5.1 -Dfile=../plugins/jna-3.5.1.jar  -DgeneratePom=true

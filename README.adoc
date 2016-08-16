@@ -8,11 +8,6 @@ There is a sample HTML page in the `website` directory that will allow you to ge
 
 *The link:./documentation/neo4j-tableau-web-data-connector.adoc[documentation] details installation, usage and configuration of the Connector.*
 
-There are also a separate installation instructions for 
-link:./documentation/installation/WindowsInstallationDirections.txt[Windows], 
-link:./documentation/installation/MacInstallationDirections.txt[Mac] and 
-link:./documentation/installation/UnixInstallationDirections.txt[Unix].
-
 === Example Queries
 
 There are sample queries in the link:./documentation/sample_queries.txt[sample_queries.txt] file.
@@ -34,6 +29,56 @@ It will generate and return a TDE file for usage in Tableau.
 
 == Versions
 
-This code has been tested on Neo4j 2.2 and 2.3 versions. 
+This code has been tested on Neo4j 3.0 versions. 
 This code has been tested against Tableau 9.1.
 The TDE format should be able to be read by Tableau versions 7 and higher.
+
+
+== Build Instructions for Neo4j - Tableau Extension
+
+=== Download from GitHub
+
+If you want to use a pre-build binary, link:./releases[latest binary release] (for your Neo4j installation)
+
+=== Build & Install it yourself
+
+----
+cd extension
+
+# install dependencies, build project and create zip file: neo4j-tableau-<version>.zip
+./build.sh
+----
+
+=== Install Extension
+
+Unzip `neo4j-tableau-<version>.zip` to `$NEO4J_HOME/plugins`.
+
+Edit the $NEO4J_HOME/conf/neo4j.conf file, add:
+
+----
+dbms.unmanaged_extension_classes==org.neo4j.unmanaged.extension.tableau=/export
+----
+
+=== Install Tableau Components
+
+==== Windows
+
+* Download and Extract the Tableau SDK to a directory (e.g. `c:\tableausdk`) from https://downloads.tableau.com/tssoftware/Tableau-SDK-C-Java-64Bit-9-3-1.zip
+* Add the `SDK\bin` directory to the `PATH` variable: `PATH=C:\tableausdk\bin;%PATH%`
+* Verify that the `tdeserver64.exe` runs from the `c:\tableausdk\bin` directory.
+
+==== Mac OSX
+
+Install the Tableau components as outlined here:
+https://onlinehelp.tableau.com/current/api/sdk/en-us/help.htm#SDK/tableau_sdk_installing.htm%3FTocPath%3D_____3
+
+==== Linux
+
+* Download the Tableau Linux SDK (https://downloads.tableau.com/tssoftware/Tableau-SDK-Linux-64Bit-9-3-1.tar.gz)
+* Extract the Tableau Linux SDK to a directory (e.g. /home/dave/Downloads/tableauSDK)
+* Set the LD_LIBRARY_PATH: `export LD_LIBRARY_PATH=/home/dave/Downloads/tableauSDK/lib64/dataextract`
+
+
+=== Test Setup
+
+Test setup according to the link:./documentation/neo4j-tableau-web-data-connector.adoc[documentation].
