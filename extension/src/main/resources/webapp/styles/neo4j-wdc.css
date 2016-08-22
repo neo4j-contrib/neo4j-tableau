@@ -1,0 +1,38 @@
+.neo4j-wdc-form div, h2, form {
+    margin-left: 180px;
+}
+
+.neo4j-wdc-form div, form, p, input, textarea, select {
+    font-size: 12px;
+    font-family: Menlo,Monaco,Consolas,'Courier New',monospace;
+}
+
+.neo4j-wdc-form h2 {
+    font-size: 16px;
+    font-family: Menlo,Monaco,Consolas,'Courier New',monospace;
+}
+
+.neo4j-wdc-form p {
+    font-weight: normal;
+    color: #696969;
+}
+
+.neo4j-wdc-form input, textarea {
+    font-size: 14px;
+}
+
+.neo4j-wdc-form select {
+    font-size: 12px;
+}
+
+.neo4j-wdc-form .submit {
+    font-size: 14px;
+    font-weight: bold;
+    font-family: Menlo,Monaco,Consolas,'Courier New',monospace;
+    background-color: #008cc1;
+    color: #fff;
+    border-radius: 10px;
+    padding: 6px;
+    cursor: pointer;
+    cursor: hand;
+}
