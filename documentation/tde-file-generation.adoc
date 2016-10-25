@@ -1,0 +1,110 @@
+= TDE File Generation
+
+Integration with Tableau can also be achieved by generated TDE files to be used by Tableau Desktop or Server.
+
+We provide this ability with a Neo4j Server extension that you can send a query request to to generate a TDE file.
+
+The only drawback is that it requires OS specific Tableau libraries to supply with the extension.
+
+== Build & Install Instructions for Neo4j - Tableau TDE Generator Extension
+
+=== Download from GitHub
+
+If you want to use a pre-build binary, use the http://github.com/neo4j-contrib/neo4j-tableau/releases[latest binary release] (for your Neo4j installation)
+
+=== Build it yourself
+
+----
+git clone http://github.com/neo4j-contrib/neo4j-tableau
+cd neo4j-tableau/extension
+
+# install dependencies, build project and create zip file: neo4j-tableau-<version>.zip
+./build.sh
+----
+
+=== Install Extension
+
+Unzip `neo4j-tableau-<version>.zip` to `$NEO4J_HOME/plugins`.
+
+Edit the `$NEO4J_HOME/conf/neo4j.conf` file, add:
+
+.Neo4j 3.x
+----
+dbms.unmanaged_extension_classes=org.neo4j.unmanaged.extension.tableau=/export
+----
+
+.Neo4j 2.3 `$NEO4J_HOME/conf/neo4j-server.properties`
+----
+org.neo4j.server.thirdparty_jaxrs_classes=org.neo4j.unmanaged.extension.tableau=/export
+----
+
+// dbms.unmanaged_extension_classes=org.neo4j.unmanaged.extension.tableau=/export,org.neo4j.tableau.wdc=/tableau/wdc
+
+=== Install Tableau Components
+
+==== Windows
+
+* Download and Extract the Tableau SDK to a directory (e.g. `c:\tableausdk`) from https://downloads.tableau.com/tssoftware/Tableau-SDK-C-Java-64Bit-9-3-1.zip
+* Add the `SDK\bin` directory to the `PATH` variable: `PATH=C:\tableausdk\bin;%PATH%`
+* Verify that the `tdeserver64.exe` runs from the `c:\tableausdk\bin` directory.
+
+==== Mac OSX
+
+Install the Tableau components as outlined here:
+https://onlinehelp.tableau.com/current/api/sdk/en-us/help.htm#SDK/tableau_sdk_installing.htm%3FTocPath%3D_____3
+
+==== Linux
+
+* Download the Tableau Linux SDK (https://downloads.tableau.com/tssoftware/Tableau-SDK-Linux-64Bit-9-3-1.tar.gz)
+* Extract the Tableau Linux SDK to a directory (e.g. /home/dave/Downloads/tableauSDK)
+* Set the LD_LIBRARY_PATH: `export LD_LIBRARY_PATH=/home/dave/Downloads/tableauSDK/lib64/dataextract`
+
+=== Versions
+
+* This code has been tested on Neo4j 2.3 and 3.0 versions. 
+* This code has been tested against Tableau 9.1.
+* The TDE format should be able to be read by Tableau versions 7 and higher.
+
+== Testing the TDE Extension
+
+
+Here are sample queries in that you can run to generate TDE files after setting up the movies dataset via `:play movies` in your Neo4j server.
+
+To create a TDE from the results of a Neo4j Cypher query, pass for instance the following query:
+
+[source,cypher]
+----
+MATCH (n:Movie) RETURN n
+----
+
+To this URL:
+
+`http://localhost:7474/export/tableau/tde/Match%20(n%3AMovie)%20return%20n`
+
+It will generate and return a TDE file for usage in Tableau.
+
+=== More Example Queries for Testing the Extension
+
+----
+Query: MATCH (p:Person)-[a:ACTED_IN]->(m:Movie) RETURN p,a,m
+URL: http://localhost:7474/export/tableau/tde/Match%20%28p%3APerson%29-%5Ba%3AACTED_IN%5D-%3E%28m%3AMovie%29%20return%20p%2Ca%2Cm
+----
+
+----
+Query: MATCH (p)-[a]->(m:Movie) RETURN p,a,m
+URL: http://localhost:7474/export/tableau/tde/Match%20(p)-%5Ba%5D-%3E(m%3AMovie)%20return%20p%2Ca%2Cm
+----
+
+----
+Query: MATCH (n:Movie) RETURN n
+URL: http://localhost:7474/export/tableau/tde/Match%20(n%3AMovie)%20return%20n
+----
+
+Export TDE Publish plugin examples:
+
+API Path: http://localhost:7474/export/tableau/tdepublish/{project}/{datasource}/{cypher}
+
+----
+Query: MATCH (n:Movie) RETURN n
+URL: http://localhost:7474/export/tableau/tdepublish/default/Neo4jCypher/Match%20(n%3AMovie)%20return%20n
+----
