@@ -18,7 +18,7 @@ http://neo4j-contrib.github.io/neo4j-tableau/website/Neo4jWdc.html[Open this lin
 
 Start Tableau Desktop and choose to connect a WDC (Web Data Connector):
 
-image::documentation/img/image003.png[width=400]
+image::documentation/img/image003.png[width=300]
 
 Enter the URL of your hosted Neo4jWdc.html page in the selection popup.
 
@@ -28,7 +28,7 @@ Enter the required details, the Cypher Query and optional choose result set type
 
 After query execution the created and loaded *Tableau Workbook* will appear and shows the data source or extract: *Neo4j*, the name we’ve entered, and the dimensions and measures from the Cypher query result set.
 
-image::documentation/img/image013.png[]
+image::documentation/img/image013.png[width=300]
 
 Now we can easily start analyzing the Data from Neo4j:
 
