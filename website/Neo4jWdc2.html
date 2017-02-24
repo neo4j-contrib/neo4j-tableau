@@ -1,0 +1,61 @@
+<html>
+
+<head>
+	<title>Neo4j Web Data Connector</title>
+	<meta http-equiv="Cache-Control" content="no-store" />
+	<script src="scripts/bluebird.min.js" type="text/javascript"></script>
+	<script src="scripts/jquery.min.js" type="text/javascript"></script>
+	<script src="scripts/tableauwdc-2.1.2.min.js" type="text/javascript"></script>
+	<script src="scripts/neo4j-web.min.js" type="text/javascript"></script>
+	<script src="scripts/neo4j-wdc-2.js" type="text/javascript"></script>
+	<script src="scripts/sweetalert.min.js" type="text/javascript"></script>
+	<link href="styles/neo4j-wdc.css" rel="stylesheet" type="text/css">
+	<link href="styles/sweetalert.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+	<div style="float: left">
+		<img src="images/neo4j-world.png" height="50">
+	</div>
+	<div class="neo4j-wdc-form">
+		<h2>Web Data Connector v2.0</h2>
+		<form id="inputForm" action="">
+			<p>Data Source Name:<br>
+				<input type="text" name="dataSource" value="Neo4j" size="30" />
+			</p>
+			<p>Neo4j URL:<br>
+				<input type="text" name="neo4jUrl" value="bolt://localhost" size="68" />
+			</p>
+			<p>Username:<br>
+				<input type="text" name="username" value="neo4j" size="30" />
+			</p>
+			<p>Password: <br>
+				<input type="password" name="password" value="" size="30" />
+			</p>
+			<p>Inspect Rows for Schema:<br>
+				<input type="text" name="inspectRows" value="1000" size="10" />
+			</p>
+			<p>Cypher Queries [Table Name: Query]:<br>
+				<input type="text" name="tableName1" value="Table1" size="16" />:
+				<textarea name="cypherQuery1" class="expand" rows="1" cols="38" /></textarea>
+				<br>
+				<input type="text" name="tableName2" value="Table2" size="16" />:
+				<textarea name="cypherQuery2" class="expand" rows="1" cols="38" /></textarea>
+				<br>
+				<input type="text" name="tableName3" value="Table3" size="16" />:		
+				<textarea name="cypherQuery3" class="expand" rows="1" cols="38" /></textarea>
+				<br>
+				<input type="text" name="tableName4" value="Table4" size="16" />:
+				<textarea name="cypherQuery4" class="expand" rows="1" cols="38" /></textarea>
+				<br>
+				<input type="text" name="tableName5" value="Table5" size="16" />:
+				<textarea name="cypherQuery5" class="expand" rows="1" cols="38" /></textarea>
+			</p>
+			<p>
+				<button id="submitButton" type="button" >Submit Query</button>
+			</p>
+		</form>
+	</div>
+</body>
+
+</html>

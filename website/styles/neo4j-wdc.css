@@ -2,7 +2,7 @@
     margin-left: 180px;
 }
 
-.neo4j-wdc-form div, form, p, input, textarea, select {
+.neo4j-wdc-form div, form, p, select {
     font-size: 12px;
     font-family: Menlo,Monaco,Consolas,'Courier New',monospace;
 }
@@ -19,13 +19,35 @@
 
 .neo4j-wdc-form input, textarea {
     font-size: 14px;
+    font-family: Menlo,Monaco,Consolas,'Courier New',monospace;
+}
+
+.neo4j-wdc-form input {
+    height: 25px;
+}
+
+.neo4j-wdc-form textarea {
+    position: relative;
+    width: 400px;
+    vertical-align: top;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    -webkit-appearance: textfield;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.neo4j-wdc-form .expand {
+    height: 25px;
 }
 
 .neo4j-wdc-form select {
     font-size: 12px;
 }
 
-.neo4j-wdc-form .submit {
+.neo4j-wdc-form button {
     font-size: 14px;
     font-weight: bold;
     font-family: Menlo,Monaco,Consolas,'Courier New',monospace;
