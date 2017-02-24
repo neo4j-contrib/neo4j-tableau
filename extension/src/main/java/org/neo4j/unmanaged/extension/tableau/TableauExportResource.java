@@ -5,6 +5,7 @@ import com.tableausoftware.TableauException;
 import com.tableausoftware.server.ServerAPI;
 import com.tableausoftware.server.ServerConnection;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -26,11 +27,11 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.helpers.collection.ArrayIterator;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -66,49 +67,35 @@ public class TableauExportResource
     @GET
     @Produces({ "application/x-download", MediaType.APPLICATION_JSON })
     @Path( "/tde/{cypher}" )
-    public Response tde( @PathParam( "cypher" ) String cypherQuery )
-    {
-        String strOutput = "";
-        List<String> rows = new ArrayList<>();
-        Map<String, Object> rowSet;
-        
-        // operations on the graph
-        this.tdeWriter = new TdeWriter(this.fileName, this.maxRecCntInspect, this.capitalizeNames, this.colNameDelim);
+    public Response tdeGet( @PathParam( "cypher" ) String cypherQuery )
+    {        
+        this.processQuery(cypherQuery);
 
-        try
-        (  Transaction tx = graphDb.beginTx()) {
-
-//        try ( Result result = graphDb.execute( cypherQuery, parameters ) )
-            System.out.println("Execute query " + cypherQuery);
-
-            try ( Result result = graphDb.execute( cypherQuery ) )
-            {
-                if (result.hasNext() ) {
-                    // process query result
-                    while ( result.hasNext() )
-                    {
-                        rowSet = new HashMap();
-                        Map<String, Object> row = result.next();
-                        for ( String key : result.columns() )
-                        {
-                            processRowKey( key, row, rowSet );
-                        }
-                        this.resultset.add( rowSet );               
-                        this.tdeWriter.insertData(this.resultset, this.columns, this.columnMeta, this.columnPos);
-                    }
-                    this.tdeWriter.setResultSetFinished();
-                    this.tdeWriter.insertData(this.resultset, this.columns, this.columnMeta, this.columnPos);
-                    tx.success();
-                } else {
-                    this.tdeWriter.addException( (new TableauExportMessage( "Cypher Statement", "Returned no rows.." )).toJson() );
-                }
-            } catch(Exception ex) {
-                this.tdeWriter.addException( (new TableauExportMessage( ex )).toJson() );
-                tx.terminate();
-            }
-        }       
-
-        this.tdeWriter.close();
+        if (this.tdeWriter.isExtractCreated() && !this.tdeWriter.isErrorOccured()) {
+            // return TDE file
+            File file = new File( this.tdeWriter.getFileName() );
+            ResponseBuilder response = Response.ok((Object) file);
+            response.header("Content-Disposition",
+                            "attachment; filename=" + file.getName() );
+            return response.build();            
+        } else {
+            // return error message
+            ResponseBuilderImpl builder = new ResponseBuilderImpl();
+            builder.status(Status.BAD_REQUEST);
+            builder.entity( this.tdeWriter.getExceptionList().toString() );
+            builder.type(MediaType.APPLICATION_JSON);
+            Response response = builder.build();
+            throw new WebApplicationException(response);
+        }
+    }
+    
+    @POST
+    @Consumes("text/plain")
+    @Produces({ "application/x-download", MediaType.APPLICATION_JSON })
+    @Path( "/tde" )
+    public Response tdePost(String cypherQuery)
+    {        
+        this.processQuery(cypherQuery);
 
         if (this.tdeWriter.isExtractCreated() && !this.tdeWriter.isErrorOccured()) {
             // return TDE file
@@ -131,96 +118,75 @@ public class TableauExportResource
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     @Path( "/tdepublish/{project}/{datasource}/{cypher}" )
-    public Response tdePublish( 
+    public Response tdePublishGet( 
             @PathParam( "project" ) String project, // "default"
             @PathParam( "datasource" ) String datasource, // "Cypher-Query"
             @PathParam( "cypher" ) String cypherQuery 
         )
     {
-        String strOutput = "";
-        List<String> rows = new ArrayList<>();
-        Map<String, Object> rowSet;
-        
         if (project.equals("")) project = "default";
         if (datasource.equals("")) datasource = "Cypher-Query";
         
-        this.tdeWriter = new TdeWriter(this.fileName, maxRecCntInspect, capitalizeNames, colNameDelim);
+        this.processQuery(cypherQuery);
 
-        try
-        (  Transaction tx = graphDb.beginTx()) {
-            // operations on the graph
-
-//        try ( Result result = graphDb.execute( cypherQuery, parameters ) )
-            System.out.println("Execute query " + cypherQuery);
-
-            try ( Result result = graphDb.execute( cypherQuery ) )
-            {
-                if (result.hasNext() ) {
-                    // process query result
-                    while ( result.hasNext() )
-                    {
-                        rowSet = new HashMap();
-                        Map<String, Object> row = result.next();
-                        for ( String key : result.columns() )
-                        {
-                            processRowKey( key, row, rowSet );
-                        }
-                        this.resultset.add( rowSet );               
-                        this.tdeWriter.insertData(this.resultset, this.columns, this.columnMeta, this.columnPos);
-                    }
-                    this.tdeWriter.setResultSetFinished();
-                    this.tdeWriter.insertData(this.resultset, this.columns, this.columnMeta, this.columnPos);
-                    tx.success();
-                } else {
-                    this.tdeWriter.addException( (new TableauExportMessage( "Cypher Statement", "Returned no rows.." )).toJson() );
-                }
-            } catch(Exception ex) {
-                tx.terminate();
-                this.tdeWriter.addException( (new TableauExportMessage( ex )).toJson() );
-            }
-        }       
-
-        this.tdeWriter.close();
-        
         ResponseBuilderImpl builder = new ResponseBuilderImpl();
         if (this.tdeWriter.isExtractCreated() && !this.tdeWriter.isErrorOccured()) {
             try {
-                // Raed properties
-                Properties prop = new Properties();
-//                System.out.println("Working Directory = " + System.getProperty("user.dir"));
-                String workingdir = System.getProperty("user.dir");
-                // fix for Windows environment
-                if(workingdir.substring(workingdir.length()-4).equals("\\bin")) workingdir = workingdir.substring(0, workingdir.length()-4);
-                prop.load(new FileInputStream(workingdir + "/plugins/tableau-server.properties"));
+                Properties prop = this.getPulishingProperties();
                 
                 String serverUrl, userName, passWord, siteId;
                 serverUrl = prop.getProperty("server.url");
                 userName = prop.getProperty("username");
                 passWord = prop.getProperty("password");
                 siteId = prop.getProperty("site.id");
+ 
+                this.publishToServer(serverUrl, userName, passWord, siteId, project, datasource);
+
+                builder.status(Status.OK);
+                builder.entity( (new TableauExportMessage( "TDE Server Publishing", "TDE file " + this.fileName 
+                        + " published to server:" + serverUrl )).toJson() );
+                builder.type(MediaType.APPLICATION_JSON);
+                return builder.build();
+            } catch (TableauException | IOException ex) {
+                Logger.getLogger(TableauExportResource.class.getName()).log(Level.SEVERE, null, ex);
+                this.tdeWriter.addException( (new TableauExportMessage( ex )).toJson() );
+            }
+        }
+        // return error message
+        builder.status(Status.BAD_REQUEST);
+        builder.entity( this.tdeWriter.getExceptionList().toString() );
+        builder.type(MediaType.APPLICATION_JSON);
+        Response response = builder.build();
+        throw new WebApplicationException(response);                 
+    }
+    
+    @POST
+    @Consumes("text/plain")
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Path( "/tdepublish/{project}/{datasource}" )
+    public Response tdePublishPost( 
+            @PathParam( "project" ) String project,
+            @PathParam( "datasource" ) String datasource,
+            String cypherQuery 
+        )
+    {
+        if (project.equals("")) project = "default";
+        if (datasource.equals("")) datasource = "Cypher-Query";
+        
+        this.processQuery(cypherQuery);
+
+        ResponseBuilderImpl builder = new ResponseBuilderImpl();
+        if (this.tdeWriter.isExtractCreated() && !this.tdeWriter.isErrorOccured()) {
+            try {
+                Properties prop = this.getPulishingProperties();
                 
-                // publsih TDE file
-                // Initialize Tableau Server API
-                ServerAPI.initialize();
-                // Create the server connection object
-                ServerConnection serverConnection = new ServerConnection();
-
-                // Connect to the server
-                System.out.println("Connect to " + serverUrl);
-                serverConnection.connect(serverUrl, userName, passWord, siteId);
-
-                // Publish tde to the server under the default project with name Cypher-Query
-                System.out.println("Publish file " + this.fileName);
-                serverConnection.publishExtract(this.fileName, project, datasource, true);
-
-                // Disconnect from the server
-                serverConnection.disconnect();
-
-                // Destroy the server connection object
-                serverConnection.close();
-
-                // Clean up Tableau Server API
-                ServerAPI.cleanup();
+                String serverUrl, userName, passWord, siteId;
+                serverUrl = prop.getProperty("server.url");
+                userName = prop.getProperty("username");
+                passWord = prop.getProperty("password");
+                siteId = prop.getProperty("site.id");
+ 
+                this.publishToServer(serverUrl, userName, passWord, siteId, project, datasource);
 
                 builder.status(Status.OK);
                 builder.entity( (new TableauExportMessage( "TDE Server Publishing", "TDE file " + this.fileName 
@@ -244,47 +210,71 @@ public class TableauExportResource
     @Produces( MediaType.TEXT_PLAIN )
     @Path( "/json/{cypher}" )
     // for testing purpose only
-    public Response json( @PathParam( "cypher" ) String cypherQuery )
+    public Response jsonGet( @PathParam( "cypher" ) String cypherQuery )
     {
         List<String> rows = new ArrayList<>();
-        Map<String, Object> rowSet;
-        this.colNameDelim = "_";
-        this.capitalizeNames = false;
         
-        try
-        ( Transaction tx = graphDb.beginTx()) {
-            // operations on the graph
+        this.processQueryToRows(cypherQuery, rows);
 
-//        try ( Result result = graphDb.execute( cypherQuery, parameters ) )
-            try ( Result result = graphDb.execute( cypherQuery ) )
-            {
-                while ( result.hasNext() )
-                {
-                    rowSet = new HashMap();
-                    Map<String, Object> row = result.next();
-                    for ( String key : result.columns() )
-                    {
-                        processRowKey( key, row, rowSet );
-                    }
-                    this.resultset.add( rowSet );
-                }
-            }
-            tx.success();
-        }       
-  
-        // build array of JSON objects/row
-        Iterator iter = resultset.iterator();
-        while (iter.hasNext()) {
-            try {
-                rows.add(this.mapper.writeValueAsString(iter.next()));
-            } catch (IOException ex) {
-                Logger.getLogger(TableauExportResource.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        
         // return JSON string
         return Response.status( Status.OK ).entity(
                 rows.toString().getBytes( Charset.forName("UTF-8") ) ).build();
+    }
+    
+    @POST
+    @Consumes("text/plain")
+    @Produces( MediaType.TEXT_PLAIN )
+    @Path( "/json" )
+    // for testing purpose only
+    public Response jsonPost(String cypherQuery)
+    {
+        List<String> rows = new ArrayList<>();
+        
+        this.processQueryToRows(cypherQuery, rows);
+
+        // return JSON string
+        return Response.status( Status.OK ).entity(
+                rows.toString().getBytes( Charset.forName("UTF-8") ) ).build();
+    }
+    
+    private void processQuery(String cypherQuery) {
+        Map<String, Object> rowSet;
+
+        this.tdeWriter = new TdeWriter(this.fileName, this.maxRecCntInspect, this.capitalizeNames, this.colNameDelim);
+
+        try
+        (  Transaction tx = graphDb.beginTx()) {
+
+            System.out.println("Execute query " + cypherQuery);
+
+            try ( Result result = graphDb.execute( cypherQuery ) )
+            {
+                if (result.hasNext() ) {
+                    // process query result
+                    while ( result.hasNext() )
+                    {
+                        rowSet = new HashMap();
+                        Map<String, Object> row = result.next();
+                        for ( String key : result.columns() )
+                        {
+                            processRowKey( key, row, rowSet );
+                        }
+                        this.resultset.add( rowSet );               
+                        this.tdeWriter.insertData(this.resultset, this.columns, this.columnMeta, this.columnPos);
+                    }
+                    this.tdeWriter.setResultSetFinished();
+                    this.tdeWriter.insertData(this.resultset, this.columns, this.columnMeta, this.columnPos);
+                    tx.success();
+                } else {
+                    this.tdeWriter.addException( (new TableauExportMessage( "Cypher Statement", "Returned no rows.." )).toJson() );
+                }
+            } catch(Exception ex) {
+                this.tdeWriter.addException( (new TableauExportMessage( ex )).toJson() );
+                tx.terminate();
+            }
+        }       
+
+        this.tdeWriter.close();
     }
 
     private void processRowKey(String key, Map<String, Object> row, Map<String, Object> rowSet) {
@@ -308,7 +298,7 @@ public class TableauExportResource
     
     private void processNode(String col, Node node, Map<String, Object> rowSet) {        
         addColumn( col + this.colNameDelim + "id", Neo4jType.LONG );
-        rowSet.put( col + this.colNameDelim + "id", new Long(node.getId()) );
+        rowSet.put(col + this.colNameDelim + "id", node.getId());
         
         try {
             for ( Label label : node.getLabels() )
@@ -332,7 +322,7 @@ public class TableauExportResource
     
     private void processRelationship(String col, Relationship relation, Map<String, Object> rowSet) {
         addColumn( col + this.colNameDelim + "id", Neo4jType.LONG );
-        rowSet.put( col + this.colNameDelim + "id", new Long(relation.getId()) );
+        rowSet.put(col + this.colNameDelim + "id", relation.getId());
         
         try {
             addColumn(col + this.colNameDelim + "type", Neo4jType.STRING);
@@ -399,7 +389,7 @@ public class TableauExportResource
                 this.columnMeta.put(columnName, type);
                 this.columns.add(columnName);
                 pos = this.columns.size() -1;
-                columnPos.put(columnName, new Integer(pos));
+                columnPos.put(columnName, pos);
             } else if (actualType != type) {
                 // new column type STRING inspected, upgrade type if possible
                 if (actualType == Neo4jType.LONG && (type == Neo4jType.DOUBLE || type == Neo4jType.STRING)) {
@@ -410,5 +400,86 @@ public class TableauExportResource
             }
         }
         return pos;     
+    }
+    
+    private Properties getPulishingProperties() throws IOException {
+        // Read properties
+        Properties prop = new Properties();
+//                System.out.println("Working Directory = " + System.getProperty("user.dir"));
+        String workingdir = System.getProperty("user.dir");
+        // fix for Windows environment
+        if(workingdir.substring(workingdir.length()-4).equals("\\bin")) workingdir = workingdir.substring(0, workingdir.length()-4);
+        prop.load(new FileInputStream(workingdir + "/plugins/tableau-server.properties"));
+
+        return prop;       
+    }
+    
+    private void publishToServer(
+            String serverUrl, 
+            String userName, 
+            String passWord, 
+            String siteId, 
+            String project, 
+            String datasource) throws TableauException, IOException {
+
+        // publsih TDE file
+        // Initialize Tableau Server API
+        ServerAPI.initialize();
+        // Create the server connection object
+        ServerConnection serverConnection = new ServerConnection();
+
+        // Connect to the server
+        System.out.println("Connect to " + serverUrl);
+        serverConnection.connect(serverUrl, userName, passWord, siteId);
+
+        // Publish tde to the server under the default project with name Cypher-Query
+        System.out.println("Publish file " + this.fileName);
+        serverConnection.publishExtract(this.fileName, project, datasource, true);
+
+        // Disconnect from the server
+        serverConnection.disconnect();
+
+        // Destroy the server connection object
+        serverConnection.close();
+
+        // Clean up Tableau Server API
+        ServerAPI.cleanup();
+    }
+    
+    private void processQueryToRows(String cypherQuery, List<String> rows) {
+        Map<String, Object> rowSet;
+        this.colNameDelim = "_";
+        this.capitalizeNames = false;
+        
+        try
+        ( Transaction tx = graphDb.beginTx()) {
+            // operations on the graph
+
+//        try ( Result result = graphDb.execute( cypherQuery, parameters ) )
+            try ( Result result = graphDb.execute( cypherQuery ) )
+            {
+                while ( result.hasNext() )
+                {
+                    rowSet = new HashMap();
+                    Map<String, Object> row = result.next();
+                    for ( String key : result.columns() )
+                    {
+                        processRowKey( key, row, rowSet );
+                    }
+                    this.resultset.add( rowSet );
+                }
+            }
+            tx.success();
+        }       
+  
+        // build array of JSON objects/row
+        Iterator iter = resultset.iterator();
+        while (iter.hasNext()) {
+            try {
+                rows.add(this.mapper.writeValueAsString(iter.next()));
+            } catch (IOException ex) {
+                Logger.getLogger(TableauExportResource.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
 }
