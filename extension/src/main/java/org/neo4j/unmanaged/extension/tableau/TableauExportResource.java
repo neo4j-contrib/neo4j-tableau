@@ -27,7 +27,9 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.helpers.collection.ArrayIterator;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,7 +53,8 @@ public class TableauExportResource
  
     // max amount of records to inspect column data types:
     private final int maxRecCntInspect = 1000;
-    private final String fileName = System.getProperty("java.io.tmpdir") + "cypherquery.tde";
+    private final String baseFileName = "cypherquery.tde";
+    private final String fileName = System.getProperty("java.io.tmpdir") + this.baseFileName;
     private TdeWriter tdeWriter;
     private final ObjectMapper mapper = new ObjectMapper();
     
@@ -65,19 +68,23 @@ public class TableauExportResource
     }
 
     @GET
-    @Produces({ "application/x-download", MediaType.APPLICATION_JSON })
+    @Produces({ "application/x-binary" })
     @Path( "/tde/{cypher}" )
     public Response tdeGet( @PathParam( "cypher" ) String cypherQuery )
     {        
         this.processQuery(cypherQuery);
 
         if (this.tdeWriter.isExtractCreated() && !this.tdeWriter.isErrorOccured()) {
-            // return TDE file
-            File file = new File( this.tdeWriter.getFileName() );
-            ResponseBuilder response = Response.ok((Object) file);
-            response.header("Content-Disposition",
-                            "attachment; filename=" + file.getName() );
-            return response.build();            
+            try {
+                InputStream fileStream = new FileInputStream(this.fileName);
+                ResponseBuilder response = Response.ok(fileStream, "application/x-binary");
+                response.header("Content-Disposition",
+                        "attachment; filename=" + this.baseFileName );
+                return response.build();
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(TableauExportResource.class.getName()).log(Level.SEVERE, null, ex);
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
         } else {
             // return error message
             ResponseBuilderImpl builder = new ResponseBuilderImpl();
@@ -90,20 +97,26 @@ public class TableauExportResource
     }
     
     @POST
-    @Consumes("text/plain")
-    @Produces({ "application/x-download", MediaType.APPLICATION_JSON })
+    @Consumes({ "text/plain" })
+    @Produces({ "application/x-binary" })
     @Path( "/tde" )
     public Response tdePost(String cypherQuery)
     {        
+        System.out.println("POST query " + cypherQuery);
         this.processQuery(cypherQuery);
 
         if (this.tdeWriter.isExtractCreated() && !this.tdeWriter.isErrorOccured()) {
             // return TDE file
-            File file = new File( this.tdeWriter.getFileName() );
-            ResponseBuilder response = Response.ok((Object) file);
-            response.header("Content-Disposition",
-                            "attachment; filename=" + file.getName() );
-            return response.build();            
+            try {
+                InputStream fileStream = new FileInputStream(this.fileName);
+                ResponseBuilder response = Response.ok(fileStream, "application/x-binary");
+                response.header("Content-Disposition",
+                        "attachment; filename=" + this.baseFileName );
+                return response.build();
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(TableauExportResource.class.getName()).log(Level.SEVERE, null, ex);
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
         } else {
             // return error message
             ResponseBuilderImpl builder = new ResponseBuilderImpl();
@@ -161,7 +174,7 @@ public class TableauExportResource
     }
     
     @POST
-    @Consumes("text/plain")
+    @Consumes({ "text/plain" })
     @Produces({ MediaType.APPLICATION_JSON })
     @Path( "/tdepublish/{project}/{datasource}" )
     public Response tdePublishPost( 
@@ -204,37 +217,6 @@ public class TableauExportResource
         builder.type(MediaType.APPLICATION_JSON);
         Response response = builder.build();
         throw new WebApplicationException(response);                 
-    }
-    
-    @GET
-    @Produces( MediaType.TEXT_PLAIN )
-    @Path( "/json/{cypher}" )
-    // for testing purpose only
-    public Response jsonGet( @PathParam( "cypher" ) String cypherQuery )
-    {
-        List<String> rows = new ArrayList<>();
-        
-        this.processQueryToRows(cypherQuery, rows);
-
-        // return JSON string
-        return Response.status( Status.OK ).entity(
-                rows.toString().getBytes( Charset.forName("UTF-8") ) ).build();
-    }
-    
-    @POST
-    @Consumes("text/plain")
-    @Produces( MediaType.TEXT_PLAIN )
-    @Path( "/json" )
-    // for testing purpose only
-    public Response jsonPost(String cypherQuery)
-    {
-        List<String> rows = new ArrayList<>();
-        
-        this.processQueryToRows(cypherQuery, rows);
-
-        // return JSON string
-        return Response.status( Status.OK ).entity(
-                rows.toString().getBytes( Charset.forName("UTF-8") ) ).build();
     }
     
     private void processQuery(String cypherQuery) {
@@ -382,7 +364,7 @@ public class TableauExportResource
     private int addColumn(String columnName, Neo4jType type) {
         int pos = -1;
         
-        if (this.tdeWriter.getRecCnt() <= this.tdeWriter.getMaxRecCntInspect()) {
+        if (this.tdeWriter == null || (this.tdeWriter.getRecCnt() <= this.tdeWriter.getMaxRecCntInspect())) {
             Neo4jType actualType = this.columnMeta.get(columnName);
             if (actualType == null) {
                 // column doesn't exist
@@ -446,40 +428,40 @@ public class TableauExportResource
         ServerAPI.cleanup();
     }
     
-    private void processQueryToRows(String cypherQuery, List<String> rows) {
-        Map<String, Object> rowSet;
-        this.colNameDelim = "_";
-        this.capitalizeNames = false;
-        
-        try
-        ( Transaction tx = graphDb.beginTx()) {
-            // operations on the graph
-
-//        try ( Result result = graphDb.execute( cypherQuery, parameters ) )
-            try ( Result result = graphDb.execute( cypherQuery ) )
-            {
-                while ( result.hasNext() )
-                {
-                    rowSet = new HashMap();
-                    Map<String, Object> row = result.next();
-                    for ( String key : result.columns() )
-                    {
-                        processRowKey( key, row, rowSet );
-                    }
-                    this.resultset.add( rowSet );
-                }
-            }
-            tx.success();
-        }       
-  
-        // build array of JSON objects/row
-        Iterator iter = resultset.iterator();
-        while (iter.hasNext()) {
-            try {
-                rows.add(this.mapper.writeValueAsString(iter.next()));
-            } catch (IOException ex) {
-                Logger.getLogger(TableauExportResource.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
+//    private void processQueryToRows(String cypherQuery, List<String> rows) {
+//        Map<String, Object> rowSet;
+//        this.colNameDelim = "_";
+//        this.capitalizeNames = false;
+//        
+//        try
+//        ( Transaction tx = graphDb.beginTx()) {
+//            // operations on the graph
+//
+////        try ( Result result = graphDb.execute( cypherQuery, parameters ) )
+//            try ( Result result = graphDb.execute( cypherQuery ) )
+//            {
+//                while ( result.hasNext() )
+//                {
+//                    rowSet = new HashMap();
+//                    Map<String, Object> row = result.next();
+//                    for ( String key : result.columns() )
+//                    {
+//                        processRowKey( key, row, rowSet );
+//                    }
+//                    this.resultset.add( rowSet );
+//                }
+//            }
+//            tx.success();
+//        }       
+//  
+//        // build array of JSON objects/row
+//        Iterator iter = resultset.iterator();
+//        while (iter.hasNext()) {
+//            try {
+//                rows.add(this.mapper.writeValueAsString(iter.next()));
+//            } catch (IOException ex) {
+//                Logger.getLogger(TableauExportResource.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+//        }
+//    }
 }

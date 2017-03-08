@@ -1,6 +1,6 @@
 = Neo4j - Tableau Integration
 
-== Neo4j Tableau Web Data Connector
+== Neo4j Tableau Web Data Connector v2.0
 
 Tableau 9.1 includes the Web Data Connector SDK, which lets you connect to any web data accessible over HTTP. You can follow the WDC Tutorial to read about the details: http://onlinehelp.tableau.com/current/api/wdc/en-us/help.htm
 
@@ -47,7 +47,7 @@ To create a TDE from the results of a Neo4j Cypher query, pass for instance the 
 MATCH (n:Movie) RETURN n
 ----
 
-To this URL: `http://localhost:7474/export/tableau/tde/MATCH+(n%3AMovie)+RETURN+n`
+To this URL: `http://localhost:7474/export/tableau/tde/MATCH%20(n%3AMovie)%20RETURN%20n`
 
 It will generate and return a TDE file for usage in Tableau.
 
