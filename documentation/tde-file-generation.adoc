@@ -89,17 +89,17 @@ It will generate and RETURN a TDE file for usage in Tableau.
 
 ----
 Query: MATCH (p:Person)-[a:ACTED_IN]->(m:Movie) RETURN p,a,m
-URL: http://localhost:7474/export/tableau/tde/MATCH+%28p%3APerson%29-%5Ba%3AACTED_IN%5D-%3E%28m%3AMovie%29+RETURN+p%2Ca%2Cm
+URL: http://localhost:7474/export/tableau/tde/MATCH%20%28p%3APerson%29-%5Ba%3AACTED_IN%5D-%3E%28m%3AMovie%29%20RETURN%20p%2Ca%2Cm
 ----
 
 ----
 Query: MATCH (p)-[a]->(m:Movie) RETURN p,a,m
-URL: http://localhost:7474/export/tableau/tde/MATCH+(p)-%5Ba%5D-%3E(m%3AMovie)+RETURN+p%2Ca%2Cm
+URL: http://localhost:7474/export/tableau/tde/MATCH%20(p)-%5Ba%5D-%3E(m%3AMovie)%20RETURN%20p%2Ca%2Cm
 ----
 
 ----
 Query: MATCH (n:Movie) RETURN n
-URL: http://localhost:7474/export/tableau/tde/MATCH+(n%3AMovie)+RETURN+n
+URL: http://localhost:7474/export/tableau/tde/MATCH%20(n%3AMovie)%20RETURN%20n
 ----
 
 == Publishing to Tableau Server
@@ -111,14 +111,14 @@ API Path: http://localhost:7474/export/tableau/tdepublish/{project}/{datasource}
 Replace `{project}` and `{datasource}´ with  your details.
 
 ----
-http://localhost:7474/export/tableau/tdepublish/{project}/{datasource}/MATCH+(n%3AMovie)+RETURN+n
+http://localhost:7474/export/tableau/tdepublish/{project}/{datasource}/MATCH%20(n%3AMovie)%20RETURN%20n
 ----
 
 For Example:
 
 ----
 Query: MATCH (n:Movie) RETURN n
-URL: http://localhost:7474/export/tableau/tdepublish/default/Neo4jCypher/MATCH+(n%3AMovie)+RETURN+n
+URL: http://localhost:7474/export/tableau/tdepublish/default/Neo4jCypher/MATCH%20(n%3AMovie)%20RETURN%20n
 ----
 
 Edit `$NEO4J_HOME/plugins/tableau-server.properties` file when extracts should be published:
