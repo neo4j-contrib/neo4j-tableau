@@ -55,6 +55,50 @@ See https://community.tableau.com/message/452404#452404
 Install the Tableau components as outlined here:
 https://onlinehelp.tableau.com/current/api/sdk/en-us/help.htm#SDK/tableau_sdk_installing.htm%3FTocPath%3D_____3
 
+.N.B.
+
+After completing all the steps it might occur an error during the REST API invocation. If you get a response reporting the following message:
+----
+“A requested feature, protocol or option was not found built-in in this libcurl due to a build-time decision”
+----
+
+Then you need to do additional configuration steps. In general this error is due to the fact that the curl library (in the Frameworks directory in the dmg file) is too old or lacks of some features.
+The easiest way to update your curl is to use https://brew.sh/[Homebrew] (the package manager for Mac OS X).
+
+Run the following command:
+----
+$ brew install Curl --with-libssh2 --with-libmetalink --with-rtmpdump --with-nghttp2
+----
+After the installation is completed you need to find the new Curl library with:
+----
+$ locate libcurl.4.dylib | grep Cellar
+----
+It might happen that you don’t have your catalog ready so the previous command replies telling you to generate the catalog. In this case you can run the following command:
+----
+$ sudo launchctl load -w /System/Library/LaunchDaemons/com.apple.locate.plist
+----
+It might take time to load the catalog, but after a few minutes if you run again the “locate” command it should answer like that:
+----
+/usr/local/Cellar/curl/7.54.1/lib/libcurl.4.dylib
+----
+This is the path of the new (working) library but you need also to find the libraries to be replaced.
+Run the following command:
+----
+$ locate libtabcurl.4.dylib
+----
+You get an answer that should be similar to this:
+----
+/Applications/Tableau Desktop 10.3.app/Contents/Frameworks/libtabcurl.4.dylib
+/Library/Frameworks/TableauServer.framework/Versions/A/Libraries/libtabcurl.4.dylib
+----
+In general, you don’t need to replace the library inside “Applications” folder because is related to Tableau Desktop and you are focusing on the Tableau Framework (SDK) dependencies.
+The last command to run is:
+
+----
+$ cp /usr/local/Cellar/curl/7.54.1/lib/libcurl.4.dylib /Library/Frameworks/TableauServer.framework/Versions/A/Libraries/libtabcurl.4.dylib
+----
+After that you can restart your Neo4j instance.
+
 ==== Linux
 
 * Download the Tableau Linux SDK (https://downloads.tableau.com/tssoftware/Tableau-SDK-Linux-64Bit-9-3-1.tar.gz)
