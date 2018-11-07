@@ -1,12 +1,12 @@
 = Neo4j - Tableau Integration
 
-== Neo4j Tableau Web Data Connector v2.0
+== Neo4j Tableau Web Data Connector v2.3
 
 Since Tableau 9.1 the Web Data Connector SDK can be used to connect Tableau to any web data accessible over HTTP. You can follow the WDC Tutorial to read about the details here:
 
 https://tableau.github.io/webdataconnector
 
-This Neo4j Tableau WDC implements WDC version 2.1.2 and can be used with Tableau v10.1 or later and Neo4j v3.0.4 or later:
+This Neo4j Tableau WDC implements WDC version 2.3.0 and can be used with Tableau v10.4 or later and Neo4j v3.0.4 or later:
 
 https://tableau.github.io/webdataconnector/docs/wdc_library_versions
 
@@ -14,9 +14,18 @@ The Neo4j WDC uses the Neo4j Driver for Javascript which implements the https://
 
 https://github.com/neo4j/neo4j-javascript-driver
 
-The Neo4j WDC v2.0 can be used directly via GitHub Page URL:
+The Neo4j WDC v2.3 can be used directly via GitHub Page URL:
 
 http://neo4j-contrib.github.io/neo4j-tableau/website/Neo4jWdc2.html (copy URL)
+
+=== New in Version 2.3
+
+. Neo4j Temporal values https://neo4j.com/docs/developer-manual/current/cypher/syntax/temporal/
+  - converts Neo4j Date and DateTime values to Tableau Date or DateTime
+  - converts Neo4j Time values to Tableau Integer (seconds of the day)
+  - doesn't convert Neo4j Duration values but creates separate columns for all parts (months, days, seconds, nanoseconds)
+. Neo4j Spatial values https://neo4j.com/docs/developer-manual/current/cypher/syntax/spatial/
+  - converts Neo4j Point values to Tableau Geometry (GeoJSON)
 
 === Connect from Tableau
 
@@ -51,7 +60,7 @@ After all queries are executed the created and loaded *Tableau Workbook* will ap
 
 image::documentation/img/tableau-neo4j-analysis.png[width=600]
 
-Now we can easily start analyzing the Data from Neo4j:
+Now we can easily start analyzing the Data from Neo4j.
 
 == TDE File Generator Extension
 
