@@ -15,7 +15,7 @@ function executeNeoQueries(config, username, password, mode, fnResults, fnReason
                     }
                     if (mode === 1) {
                         // inspect schema query
-                        var inspectRows = parseInt(config.inspectRows);
+                        var inspectRows = parseInt(config.inspectRows, 10);
                         var queryWords = query.split(/[\s\n]+/);
                         if (isNaN(inspectRows) || inspectRows == 0) inspectRows = 1000;
                         if (queryWords.length > 2 && queryWords[queryWords.length - 2].toLowerCase() === "limit") {
@@ -60,41 +60,51 @@ var fnQueryResults = function (mode, results) {
 
     // Helper functions
     var recordToNative = function (rec) {
-        var out = {}
+        var out = {};
         rec.keys.forEach(function (key, index) {
-            out[key] = rec._fields[index]
+            out[key] = rec._fields[index];
         })
-        return out
+        return out;
     }
     var isRecord = function (obj) {
-        if (typeof obj._fields !== 'undefined' && typeof obj.keys !== 'undefined') {
-            return true
+        if (typeof obj !== 'undefined' && typeof obj._fields !== 'undefined' && typeof obj.keys !== 'undefined') {
+            return true;
         }
-        return false
+        return false;
     }
     var mapObj = function (fn, obj) {
-        var out = {}
+        var out = {};
         Object.keys(obj).forEach(function (key) {
             if(key.indexOf('.') === -1) {
-                out[key] = fn(obj[key])
+                out[key] = fn(obj[key]);
             } else {
-                out[key.replace(/\./g, '_')] = fn(obj[key])            
+                out[key.replace(/\./g, '_')] = fn(obj[key]);       
             }
         })
-        return out
+        return out;
     }
 
     // Main function to be exposed / used
     var toNative = function (val) {
-        if (val === null) return val
-        if (val instanceof neo4j.v1.types.Node) return toNative(val.properties)
-        if (val instanceof neo4j.v1.types.Relationship) return toNative(val.properties)
-        if (neo4j.v1.isInt(val)) return val.toInt()
-        if (Array.isArray(val)) return val.map(function (a) { return toNative(a) })
-        if (isRecord(val)) return toNative(recordToNative(val))
-        if (typeof val === 'object') return mapObj(toNative, val)
-        return val
+        if (val === null) return val;
+        if (val instanceof neo4j.v1.types.Node) return toNative(val.properties);
+        if (val instanceof neo4j.v1.types.Relationship) return toNative(val.properties);
+
+        if (_isComplexType(val)) return val;
+ 
+        if (neo4j.v1.isInt(val)) {
+            if (neo4j.v1.integer.inSafeRange(val)) {
+                return val.toInt();
+            } else {
+                return val.toString();
+            }
+        }
+        if (Array.isArray(val)) return val.map(function (a) { return toNative(a) });
+        if (isRecord(val)) return toNative(recordToNative(val));
+        if (typeof val === 'object') return mapObj(toNative, val);
+        return val;
     }
+
 
     if (results.length > 0) {
         //loop results
@@ -215,6 +225,14 @@ var fnQueryReason = function (mode, reason) {
                     if (!record.hasOwnProperty(key)) {
                         record[key] = null;
                     }
+                    if (flatData.headers[key] === tableau.dataTypeEnum.geometry) {
+                        record[key] = toGeoJSON(record[key]);
+                    } else if ((flatData.headers[key] === tableau.dataTypeEnum.date || 
+                                flatData.headers[key] === tableau.dataTypeEnum.datetime ||
+                                flatData.headers[key] === tableau.dataTypeEnum.int)
+                                && typeof record[key] === 'object') {
+                        record[key] = toDateTime(record[key]);
+                    }
                 }
                 return record;
             });
@@ -242,11 +260,65 @@ var fnQueryReason = function (mode, reason) {
     tableau.registerConnector(myConnector);
 })();
 
+// converts a Neo4j Point value into a GeoJSON object
+var toGeoJSON = function (val) {
+    if (val) {
+        if (val.hasOwnProperty("x") && val.hasOwnProperty("y")) {
+            if (val.hasOwnProperty("z") && typeof val.z !== 'undefined') {
+                return {
+                    "type": "Point",
+                    "coordinates": [val.x, val.y, val.z]
+                };
+            } else {
+                return {
+                    "type": "Point",
+                    "coordinates": [val.x, val.y]
+                };
+            }
+        }
+    }
+    return val;
+}
+
+// converts a Neo4j Temporal value into DateTime
+var toDateTime = function (val) {
+    // new Date(val.toString()) seems not to work here, maybe val object type is lost
+    if (neo4j.v1.isDate(val)) {
+        return new Date(val.year, val.month -1, val.day);
+    } 
+    if (neo4j.v1.isDateTime(val)) {
+        var d = new Date(val.year, val.month -1, val.day, val.hour, val.minute, val.second, val.nanosecond / 1000000);
+        if (val.timeZoneOffsetSeconds) {
+            d.setTime( d.getTime() + (val.timeZoneOffsetSeconds * 1000) );
+        }
+        return d;
+    } 
+    if (neo4j.v1.isLocalDateTime(val)) {
+        return new Date(Date.UTC(val.year, val.month -1, val.day, val.hour, val.minute, val.second, val.nanosecond / 1000000));
+    } 
+    if (neo4j.v1.isTime(val)) {
+        var t = (val.hour * 3600) + (val.minute * 60) + (val.second * 1);
+        if (val.timeZoneOffsetSeconds) {
+            t = t + (val.timeZoneOffsetSeconds * 1)
+            if (t >= 86400) {
+                t = t - 86400;
+            }
+        }
+        return t;
+    }
+    if (neo4j.v1.isLocalTime(val)) {
+        var t = (val.hour * 3600) + (val.minute * 60) + (val.second * 1);
+        return t;
+    }
+    return null;
+}
+    
 // Takes a hierarchical javascript object and tries to turn it into a table
 // Returns an object with headers and the row level data
 function _jsToTable(objectBlob) {
     var rowData = _flattenData(objectBlob);
     var headers = _extractHeaders(rowData);
+
     return {
         "headers": headers,
         "rowData": rowData
@@ -277,13 +349,15 @@ function _flattenObject(obj) {
     for (var key in obj) {
         if (obj.hasOwnProperty(key) && typeof obj[key] == 'object') {
             var subObj = obj[key];
-            _flattenObject(subObj);
-            for (var k in subObj) {
-                if (subObj.hasOwnProperty(k)) {
-                    obj[key + '_' + k] = subObj[k];
+            if (!_isComplexType(subObj)) {
+                _flattenObject(subObj);
+                for (var k in subObj) {
+                    if (subObj.hasOwnProperty(k)) {
+                        obj[key + '_' + k] = subObj[k];
+                    }
                 }
+                delete obj[key];
             }
-            delete obj[key];
         }
     }
 }
@@ -324,7 +398,12 @@ function _extractHeaders(rowData) {
         for (var key in rowLine) {
             if (rowLine.hasOwnProperty(key)) {
                 if (!(key in toRet)) {
-                    toRet[key] = _determineType(rowLine[key]);
+                    var ct = _determineComplexType(rowLine[key]);
+                    if (ct) {
+                        toRet[key] = ct;
+                    } else {
+                        toRet[key] = _determinePrimitiveType(rowLine[key]);
+                    }
                 }
             }
         }
@@ -333,12 +412,34 @@ function _extractHeaders(rowData) {
 }
 
 // Given a primitive, tries to make a guess at the data type of the input
-function _determineType(primitive) {
-    // possible types: 'float', 'date', 'datetime', 'bool', 'string', 'int'
-    if (parseInt(primitive) == primitive) return 'int';
-    if (parseFloat(primitive) == primitive) return 'float';
-    if (isFinite(new Date(primitive).getTime())) return 'datetime';
-    return 'string';
+function _determinePrimitiveType(primitive) {
+    // possible types: 'int', float', 'bool', 'string'
+    if (parseInt(primitive, 10) == primitive) return tableau.dataTypeEnum.int;
+    if (parseFloat(primitive) == primitive) return tableau.dataTypeEnum.float;
+    if (primitive === true || primitive === false) return tableau.dataTypeEnum.bool;
+    return tableau.dataTypeEnum.string;
+}
+
+function _isComplexType(complex) {
+    if (neo4j.v1.isPoint(complex)) return true;
+    if (neo4j.v1.isDate(complex)) return true;
+    if (neo4j.v1.isDateTime(complex)) return true;
+    if (neo4j.v1.isLocalDateTime(complex)) return true;
+    if (neo4j.v1.isLocalTime(complex)) return true;
+    if (neo4j.v1.isTime(complex)) return true;
+    // if (neo4j.v1.isDuration(complex)) return true; // keep as flattened object
+    return false;
+}
+
+function _determineComplexType(complex) {
+    if (neo4j.v1.isPoint(complex)) return tableau.dataTypeEnum.geometry;
+    if (neo4j.v1.isDate(complex)) return tableau.dataTypeEnum.date;
+    if (neo4j.v1.isDateTime(complex)) return tableau.dataTypeEnum.datetime;
+    if (neo4j.v1.isLocalDateTime(complex)) return tableau.dataTypeEnum.datetime;
+    if (neo4j.v1.isLocalTime(complex)) return tableau.dataTypeEnum.int;
+    if (neo4j.v1.isTime(complex)) return tableau.dataTypeEnum.int;
+    // if (neo4j.v1.isDuration(complex)) return tableau.dataTypeEnum.float; // keep as flattened object
+    return false;
 }
 
 function trimQuery(query) {
