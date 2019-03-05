@@ -18,5 +18,8 @@
   "homepage": "https://github.com/menome/neo4j-tableau#readme",
   "devDependencies": {
     "http-server": "^0.11.1"
+  },
+  "dependencies": {
+    "neo4j-driver": "^1.7.2"
   }
 }
