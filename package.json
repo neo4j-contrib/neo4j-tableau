@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "= Neo4j - Tableau Integration",
   "scripts": {
-    "start": "http-server website",
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -16,10 +16,9 @@
     "url": "https://github.com/menome/neo4j-tableau/issues"
   },
   "homepage": "https://github.com/menome/neo4j-tableau#readme",
-  "devDependencies": {
-    "http-server": "^0.11.1"
-  },
+  "devDependencies": {},
   "dependencies": {
+    "express": "^4.16.4",
     "neo4j-driver": "^1.7.2"
   }
 }
