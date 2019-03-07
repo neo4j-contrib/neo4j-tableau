@@ -65,7 +65,7 @@ Now we can easily start analyzing the Data from Neo4j.
 == Development
 
 Local development will default to HTTP but HTTPS is supported.
-See [this guide](https://deliciousbrains.com/https-locally-without-browser-privacy-errors/) for generating certificates in local development
+See https://deliciousbrains.com/https-locally-without-browser-privacy-errors/[this guide] for generating certificates in local development
 
 === Run as standalone
 
