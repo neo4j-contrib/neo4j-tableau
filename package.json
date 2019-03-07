@@ -1,7 +1,7 @@
 {
   "name": "neo4j-tableau",
   "version": "1.0.0",
-  "description": "= Neo4j - Tableau Integration",
+  "description": "Neo4j - Tableau Integration",
   "scripts": {
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"

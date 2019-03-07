@@ -64,6 +64,9 @@ Now we can easily start analyzing the Data from Neo4j.
 
 == Development
 
+Local development will default to HTTP but HTTPS is supported.
+See [this guide](https://deliciousbrains.com/https-locally-without-browser-privacy-errors/) for generating certificates in local development
+
 === Run as standalone
 
 1. Run the following commands:
@@ -83,9 +86,9 @@ Set the following environment variables prior to `npm start`:
 CERTIFICATE=<location of certificate> PRIVATE_KEY=<location of private key> npm start
 ```
 
-Should be accessible on https://localhost:3000
+Should be accessible on https://localhost:3000 or replace `localhost` with the DNS name set on certificate
 
-=== Run in docker
+=== Run with docker
 
 1. Build the image by running the following command:
 
@@ -99,7 +102,7 @@ docker build -t neo4j-tableau .
 docker run --name neo4j-tableau -p 3000:3000 neo4j-tableau
 ```
 
-3. Should be accessible on https://localhost:3000
+3. Should be accessible on http://localhost:3000
 
 ==== With HTTPS:
 
@@ -114,7 +117,7 @@ docker run --rm \
     neo4j-tableau
 ```
 
-Should be accessible on https://localhost:3000
+Should be accessible on https://localhost:3000 or replace `localhost` with the DNS name set on certificate
 
 == TDE File Generator Extension
 
