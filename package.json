@@ -8,14 +8,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/menome/neo4j-tableau.git"
+    "url": "git+https://github.com/neo4j-contrib/neo4j-tableau.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/menome/neo4j-tableau/issues"
+    "url": "https://github.com/neo4j-contrib/neo4j-tableau/issues"
   },
-  "homepage": "https://github.com/menome/neo4j-tableau#readme",
+  "homepage": "https://github.com/neo4j-contrib/neo4j-tableau#readme",
   "devDependencies": {},
   "dependencies": {
     "express": "^4.16.4",

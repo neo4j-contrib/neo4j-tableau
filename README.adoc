@@ -62,6 +62,60 @@ image::documentation/img/tableau-neo4j-analysis.png[width=600]
 
 Now we can easily start analyzing the Data from Neo4j.
 
+== Development
+
+=== Run as standalone
+
+1. Run the following commands:
+
+```
+npm install
+npm start
+```
+
+2. Should be accessible on http://localhost:3000
+
+==== With HTTPS:
+
+Set the following environment variables prior to `npm start`:
+
+```
+CERTIFICATE=<location of certificate> PRIVATE_KEY=<location of private key> npm start
+```
+
+Should be accessible on https://localhost:3000
+
+=== Run in docker
+
+1. Build the image by running the following command:
+
+```
+docker build -t neo4j-tableau .
+```
+
+2. Start a container using the image by running the following command:
+
+```
+docker run --name neo4j-tableau -p 3000:3000 neo4j-tableau
+```
+
+3. Should be accessible on https://localhost:3000
+
+==== With HTTPS:
+
+Substitute step 2 above with:
+
+```
+docker run --rm \
+    --name neo4j-tableau \
+    -v <location of certificate>:/cert.pem \
+    -v <location of key>:/key.pem \
+    -p 3000:3000 \
+    neo4j-tableau
+```
+
+Should be accessible on https://localhost:3000
+
 == TDE File Generator Extension
 
 We also provide a Neo4j Server extension to generate TDE files to be used with Tableau Desktop and Server.
