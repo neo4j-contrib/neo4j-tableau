@@ -1,0 +1,24 @@
+{
+  "name": "neo4j-tableau",
+  "version": "1.0.0",
+  "description": "Neo4j - Tableau Integration",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neo4j-contrib/neo4j-tableau.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/neo4j-contrib/neo4j-tableau/issues"
+  },
+  "homepage": "https://github.com/neo4j-contrib/neo4j-tableau#readme",
+  "devDependencies": {},
+  "dependencies": {
+    "express": "^4.16.4",
+    "neo4j-driver": "^1.7.2"
+  }
+}
