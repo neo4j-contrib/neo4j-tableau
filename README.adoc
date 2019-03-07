@@ -69,14 +69,13 @@ See https://deliciousbrains.com/https-locally-without-browser-privacy-errors/[th
 
 === Run as standalone
 
-1. Run the following commands:
+.Ordered
+. Run the following commands:
 
-```
-npm install
-npm start
-```
+    npm install
+    npm start
 
-2. Should be accessible on http://localhost:3000
+. Should be accessible on http://localhost:3000
 
 ==== With HTTPS:
 
@@ -90,19 +89,16 @@ Should be accessible on https://localhost:3000 or replace `localhost` with the D
 
 === Run with docker
 
-1. Build the image by running the following command:
+.Ordered
+. Build the image by running the following command:
 
-```
-docker build -t neo4j-tableau .
-```
+    docker build -t neo4j-tableau .
 
-2. Start a container using the image by running the following command:
+. Start a container using the image by running the following command:
 
-```
-docker run --name neo4j-tableau -p 3000:3000 neo4j-tableau
-```
+    docker run --name neo4j-tableau -p 3000:3000 neo4j-tableau
 
-3. Should be accessible on http://localhost:3000
+. Should be accessible on http://localhost:3000
 
 ==== With HTTPS:
 
