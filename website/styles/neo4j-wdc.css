@@ -26,6 +26,11 @@
     height: 25px;
 }
 
+.neo4j-wdc-form input[type="checkbox"] {
+    height: 20px;
+    vertical-align: middle;
+}
+
 .neo4j-wdc-form textarea {
     position: relative;
     width: 400px;
