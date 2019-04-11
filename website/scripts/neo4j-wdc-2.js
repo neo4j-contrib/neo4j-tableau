@@ -3,7 +3,8 @@ var config = {};
 function executeNeoQueries(config, username, password, mode, fnResults, fnReason) {
     return new Promise(function (resolve, reject) {
         if ((config.url) && (username) && (password)) {
-            var driver = neo4j.v1.driver(config.url, neo4j.v1.auth.basic(username, password));
+            var driverConfig = (config.encrypted) ? {encrypted: true} : undefined;
+            var driver = neo4j.v1.driver(config.url, neo4j.v1.auth.basic(username, password), driverConfig);
             var session = driver.session();
             var p = [];
             var resultsTable = [];
@@ -78,7 +79,7 @@ var fnQueryResults = function (mode, results) {
             if(key.indexOf('.') === -1) {
                 out[key] = fn(obj[key]);
             } else {
-                out[key.replace(/\./g, '_')] = fn(obj[key]);       
+                out[key.replace(/\./g, '_')] = fn(obj[key]);
             }
         })
         return out;
@@ -91,7 +92,7 @@ var fnQueryResults = function (mode, results) {
         if (val instanceof neo4j.v1.types.Relationship) return toNative(val.properties);
 
         if (_isComplexType(val)) return val;
- 
+
         if (neo4j.v1.isInt(val)) {
             if (neo4j.v1.integer.inSafeRange(val)) {
                 return val.toInt();
@@ -227,7 +228,7 @@ var fnQueryReason = function (mode, reason) {
                     }
                     if (flatData.headers[key] === tableau.dataTypeEnum.geometry) {
                         record[key] = toGeoJSON(record[key]);
-                    } else if ((flatData.headers[key] === tableau.dataTypeEnum.date || 
+                    } else if ((flatData.headers[key] === tableau.dataTypeEnum.date ||
                                 flatData.headers[key] === tableau.dataTypeEnum.datetime ||
                                 flatData.headers[key] === tableau.dataTypeEnum.int)
                                 && typeof record[key] === 'object') {
@@ -285,17 +286,17 @@ var toDateTime = function (val) {
     // new Date(val.toString()) seems not to work here, maybe val object type is lost
     if (neo4j.v1.isDate(val)) {
         return new Date(val.year, val.month -1, val.day);
-    } 
+    }
     if (neo4j.v1.isDateTime(val)) {
         var d = new Date(val.year, val.month -1, val.day, val.hour, val.minute, val.second, val.nanosecond / 1000000);
         if (val.timeZoneOffsetSeconds) {
             d.setTime( d.getTime() + (val.timeZoneOffsetSeconds * 1000) );
         }
         return d;
-    } 
+    }
     if (neo4j.v1.isLocalDateTime(val)) {
         return new Date(Date.UTC(val.year, val.month -1, val.day, val.hour, val.minute, val.second, val.nanosecond / 1000000));
-    } 
+    }
     if (neo4j.v1.isTime(val)) {
         var t = (val.hour * 3600) + (val.minute * 60) + (val.second * 1);
         if (val.timeZoneOffsetSeconds) {
@@ -312,7 +313,7 @@ var toDateTime = function (val) {
     }
     return null;
 }
-    
+
 // Takes a hierarchical javascript object and tries to turn it into a table
 // Returns an object with headers and the row level data
 function _jsToTable(objectBlob) {
@@ -480,6 +481,7 @@ $(document).ready(function () {
         tableau.connectionName = $('input[name=dataSource]')[0].value.trim();
         config = {
             "url": $('input[name=neo4jUrl]')[0].value.trim(),
+            "encrypted": $('input[name=encrypted]').prop('checked'),
             "inspectRows": $('input[name=inspectRows]')[0].value.trim(),
             "tableNames": [
                 $('input[name=tableName1]')[0].value.trim(),
@@ -517,6 +519,7 @@ $(document).ready(function () {
     if (tableau.connectionData) {
         var connData = JSON.parse(tableau.connectionData);
         $('input[name=neo4jUrl]')[0].value = connData.config.url;
+        $('input[name=encrypted]').prop('checked', connData.config.encrypted);
         $('input[name=inspectRows]')[0].value = connData.config.inspectRows;
         $('input[name=tableName1]')[0].value = connData.config.tableNames[0];
         $('input[name=tableName2]')[0].value = connData.config.tableNames[1];
