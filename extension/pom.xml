@@ -83,7 +83,7 @@
 
     </build>
     <properties>
-        <neo4j.version>3.0.4</neo4j.version>
+        <neo4j.version>3.5.0</neo4j.version>
         <slf4j.version>1.6.1</slf4j.version>
         <jersey.version>1.19</jersey.version>
     </properties>
